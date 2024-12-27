@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuctionStatus {
+  active
+  inactive
+}
+
+model Users {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String
+  password String
+
+  Bids Bids[]
+}
+
+model Auctions {
+  id          Int           @id @default(autoincrement())
+  title       String
+  description String
+  status      AuctionStatus
+
+  Bids Bids[]
+}
+
+model Bids {
+  id         Int     @id @default(autoincrement())
+  id_auction Int
+  id_user    Int
+  price      Decimal
+
+  Auctions Auctions @relation(fields: [id_auction], references: [id])
+  Users    Users    @relation(fields: [id_user], references: [id])
+}
