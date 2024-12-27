@@ -6,4 +6,4 @@ export const createAccountSchema = z.object({
   password: z.string().min(1, 'Senha é obrigatória'),
 });
 
-export type CreateAccountSchema = z.infer<typeof createAccountSchema>;
+export type CreateAccountSchema = Required<z.infer<typeof createAccountSchema>>;
