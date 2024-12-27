@@ -21,7 +21,7 @@ model Users {
   Bids Bids[]
 }
 
-model Auctions {
+model Items {
   id          Int           @id @default(autoincrement())
   title       String
   description String
@@ -31,11 +31,11 @@ model Auctions {
 }
 
 model Bids {
-  id         Int     @id @default(autoincrement())
-  id_auction Int
-  id_user    Int
-  price      Decimal
+  id      Int     @id @default(autoincrement())
+  id_item Int
+  id_user Int
+  price   Decimal
 
-  Auctions Auctions @relation(fields: [id_auction], references: [id])
-  Users    Users    @relation(fields: [id_user], references: [id])
+  Items Items @relation(fields: [id_item], references: [id])
+  Users Users @relation(fields: [id_user], references: [id])
 }
