@@ -1,6 +1,6 @@
 import { Controller, Post, Body, HttpCode, UsePipes } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ZodValidationPipe } from 'src/pipes/ZodValidation.pipe';
+import { ZodValidationPipe } from 'src/pipes/zod-schema-validation';
 import {
   AuthenticateSchema,
   authenticateSchema,
