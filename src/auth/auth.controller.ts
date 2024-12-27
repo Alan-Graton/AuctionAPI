@@ -1,6 +1,7 @@
 import { Controller, Post, Body, HttpCode, UsePipes } from '@nestjs/common';
+
 import { AuthService } from './auth.service';
-import { ZodValidationPipe } from 'src/pipes/zod-schema-validation';
+
 import {
   AuthenticateSchema,
   authenticateSchema,
@@ -9,6 +10,8 @@ import {
   CreateAccountSchema,
   createAccountSchema,
 } from 'src/schemas/create-account.schema';
+
+import { ZodValidationPipe } from 'src/pipes/zod-schema-validation';
 
 @Controller('auth')
 export class AuthController {

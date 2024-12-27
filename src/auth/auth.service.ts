@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 import { AuthenticateSchema } from 'src/schemas/authenticate.schema';
 import { CreateAccountSchema } from 'src/schemas/create-account.schema';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: AuthenticateSchema) {
+  constructor(private prisma: PrismaService) {}
+
+  async create(data: AuthenticateSchema) {
     return 'This action adds a new auth';
   }
 
@@ -17,7 +20,7 @@ export class AuthService {
     return `This action returns a #${id} auth`;
   }
 
-  update(id: number, updateAuthDto: CreateAccountSchema) {
+  update(id: number, data: CreateAccountSchema) {
     return `This action updates a #${id} auth`;
   }
 
