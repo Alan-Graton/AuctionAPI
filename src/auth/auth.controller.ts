@@ -9,6 +9,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
   UnauthorizedException,
+  ConflictException,
 } from "@nestjs/common";
 
 import { PrismaService } from "src/prisma/prisma.service";
@@ -38,8 +39,6 @@ export class AuthController {
   @UsePipes(new ZodValidationPipe(authenticateSchema))
   async authenticate(@Body() data: AuthenticateSchema) {
     try {
-      this.logger.log("Incoming authentication payload: ", data);
-
       this.logger.log("Looking for user...");
       const getUser = await this.prisma.users.findFirst({
         select: { id: true, email: true, password: true },
@@ -80,6 +79,14 @@ export class AuthController {
   @UsePipes(new ZodValidationPipe(createAccountSchema))
   async createAccount(@Body() data: CreateAccountSchema) {
     try {
+      const findDuplicateUser = await this.prisma.users.findUnique({
+        where: { email: data.email },
+      });
+
+      if (findDuplicateUser) {
+        throw new ConflictException("E-mail já em uso");
+      }
+
       this.logger.log("Hashing user password");
       data.password = await hash(data.password, 10);
 
