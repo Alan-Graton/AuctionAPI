@@ -13,19 +13,20 @@ enum AuctionStatus {
 }
 
 model users {
-  id       Int    @id @default(autoincrement())
-  name     String
-  email    String
-  password String
+  id            Int     @id @default(autoincrement())
+  name          String  @db.VarChar(255)
+  email         String  @db.VarChar(255)
+  password      String  @db.VarChar(255)
+  refresh_token String? @db.VarChar(155)
 
   bids bids[]
 }
 
 model items {
   id          Int           @id @default(autoincrement())
-  title       String
-  description String
-  status      AuctionStatus
+  title       String        @db.VarChar(255)
+  description String        @db.VarChar(255)
+  status      AuctionStatus @default(active)
 
   bids bids[]
 }
@@ -34,7 +35,7 @@ model bids {
   id      Int     @id @default(autoincrement())
   id_item Int
   id_user Int
-  price   Decimal
+  price   Decimal @db.Decimal(10, 2)
 
   items items @relation(fields: [id_item], references: [id])
   users users @relation(fields: [id_user], references: [id])
