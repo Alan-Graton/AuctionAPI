@@ -5,74 +5,133 @@ import {
   HttpCode,
   UsePipes,
   Logger,
-} from '@nestjs/common';
+  HttpException,
+  NotFoundException,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from "@nestjs/common";
 
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from "src/prisma/prisma.service";
 
 import {
   AuthenticateSchema,
   authenticateSchema,
-} from 'src/schemas/authenticate.schema';
+} from "src/schemas/authenticate.schema";
 import {
   CreateAccountSchema,
   createAccountSchema,
-} from 'src/schemas/create-account.schema';
+} from "src/schemas/create-account.schema";
 
-import { ZodValidationPipe } from 'src/pipes/zod-schema-validation';
+import { ZodValidationPipe } from "src/pipes/zod-schema-validation";
 
-import { hash, compare } from 'bcrypt';
-import { sign } from 'jsonwebtoken';
+import { hash, compare } from "bcrypt";
+import { sign } from "jsonwebtoken";
 
-@Controller('auth')
+@Controller("auth")
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
   constructor(private prisma: PrismaService) {}
 
-  @Post('/authenticate')
+  @Post("/authenticate")
   @HttpCode(200)
   @UsePipes(new ZodValidationPipe(authenticateSchema))
   async authenticate(@Body() data: AuthenticateSchema) {
-    this.logger.log('Incoming authentication payload: ', data);
+    try {
+      this.logger.log("Incoming authentication payload: ", data);
 
-    const getUser = await this.prisma.users.findFirst({
-      select: { id: true, email: true, password: true },
-      where: { email: data.email },
-    });
+      this.logger.log("Looking for user...");
+      const getUser = await this.prisma.users.findFirst({
+        select: { id: true, email: true, password: true },
+        where: { email: data.email },
+      });
 
-    this.logger.log('Comparing passwords...');
-    const isPasswordCorrect = compare(data.password, getUser.password);
+      if (!getUser) {
+        throw new NotFoundException(
+          "Usuário não encontrado. Você tem uma conta?",
+        );
+      }
 
-    if (!isPasswordCorrect) {
-      throw new Error('E-mail ou senha incorretos').message;
+      this.logger.log("Comparing passwords...");
+      const isPasswordCorrect = compare(data.password, getUser.password);
+
+      if (!isPasswordCorrect) {
+        throw new UnauthorizedException("E-mail ou senha incorretos");
+      }
+
+      this.logger.log("Generating Access Token...");
+      const token = sign(String(getUser.id), process.env.JWT_SECRET_KEY, {
+        expiresIn: "1h",
+      });
+      this.logger.log("Access Token created");
+
+      return token;
+    } catch (error) {
+      this.logger.error("User authentication failed: ", error);
+
+      if (error instanceof HttpException) throw error;
+
+      throw new InternalServerErrorException("Unexpected error!");
     }
-
-    this.logger.log('Generating Access Token...');
-    const token = sign(String(getUser.id), process.env.JWT_SECRET_KEY, {
-      expiresIn: '1h',
-    });
-    this.logger.log('Access Token created: ', token);
-
-    return token;
   }
 
-  @Post('/create-account')
+  @Post("/create-account")
   @HttpCode(201)
   @UsePipes(new ZodValidationPipe(createAccountSchema))
   async createAccount(@Body() data: CreateAccountSchema) {
-    this.logger.log('Hashing user password');
-    data.password = await hash(data.password, 10);
+    try {
+      this.logger.log("Hashing user password");
+      data.password = await hash(data.password, 10);
 
-    this.logger.log('Inserting data into database...');
-    const createdUser = await this.prisma.users.create({ data: { ...data } });
-    this.logger.log('New user stored in database: ', createdUser);
+      this.logger.log("Inserting data into database...");
+      const createdUser = await this.prisma.users.create({ data: { ...data } });
+      this.logger.log("New user stored in database: ", createdUser);
 
-    this.logger.log('Creating Access Token...');
-    const token = sign(String(createdUser.id), process.env.JWT_SECRET_KEY, {
-      expiresIn: '1h',
-    });
-    this.logger.log('Access Token created: ', token);
+      this.logger.log("Creating Refresh Token...");
+      const refreshToken = sign(
+        {
+          id: createdUser.id,
+        },
+        process.env.JWT_SECRET_KEY,
+        {
+          expiresIn: "30 days",
+        },
+      );
+      this.logger.log("Refresh Token created");
 
-    return token;
+      this.logger.log("Binding user with Refresh Token...");
+      await this.prisma.users.update({
+        data: { refresh_token: refreshToken },
+        where: { id: createdUser.id },
+      });
+      this.logger.log("User binded with Refresh Token");
+
+      this.logger.log("Creating Access Token...");
+      const accessToken = sign(
+        {
+          id: createdUser.id,
+        },
+        process.env.JWT_SECRET_KEY,
+        {
+          expiresIn: "1h",
+        },
+      );
+      this.logger.log("Access Token created");
+
+      return accessToken;
+    } catch (error) {
+      this.logger.error("User creation failed: ", error);
+
+      if (error instanceof HttpException) throw error;
+
+      throw new InternalServerErrorException("Unexpected error!");
+    }
+  }
+
+  @Post("/refresh_token")
+  @HttpCode(201)
+  async refreshUserToken() {
+    try {
+    } catch (error) {}
   }
 }
