@@ -59,7 +59,7 @@ export class AuthController {
       }
 
       this.logger.log("Generating Access Token...");
-      const token = sign(String(getUser.id), process.env.JWT_SECRET_KEY, {
+      const token = sign({ id: getUser.id }, process.env.JWT_SECRET_KEY, {
         expiresIn: "1h",
       });
       this.logger.log("Access Token created");
