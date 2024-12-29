@@ -13,15 +13,25 @@ async function main() {
     await prisma.$connect();
     console.log("[Prisma] Prisma client connected");
 
-    console.log("[Prisma] Planting seeds...");
-    const seed = await prisma.items.create({
+    console.log("[Prisma] Planting ITEM seed...");
+    const itemSeed = await prisma.items.create({
       data: {
         title: "Maquinários",
         description: "Maquinários seminovos juntamente com algumas ferramentas",
         status: "active",
       },
     });
-    console.log("[Prisma] Seeds planted!\n\n", seed);
+    console.log("[Prisma] Seed planted!\n\n", itemSeed);
+
+    console.log("[Prisma] Planting BID seed...");
+    const bidSeed = await prisma.bids.create({
+      data: {
+        id_item: 1,
+        id_user: 5,
+        price: 50,
+      },
+    });
+    console.log("[Prisma] Seed planted!\n\n", bidSeed);
 
     process.exit(0);
   } catch (error) {
