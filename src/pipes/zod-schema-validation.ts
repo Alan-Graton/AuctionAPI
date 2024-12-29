@@ -2,10 +2,10 @@ import {
   PipeTransform,
   ArgumentMetadata,
   BadRequestException,
-} from '@nestjs/common';
+} from "@nestjs/common";
 
-import { ZodError, ZodSchema } from 'zod';
-import { fromZodError } from 'zod-validation-error';
+import { ZodError, ZodSchema } from "zod";
+import { fromZodError } from "zod-validation-error";
 
 export class ZodValidationPipe implements PipeTransform {
   constructor(private schema: ZodSchema) {}
@@ -18,13 +18,13 @@ export class ZodValidationPipe implements PipeTransform {
     } catch (error) {
       if (error instanceof ZodError) {
         throw new BadRequestException({
-          message: 'Incorrect fields',
+          message: "Incorrect fields",
           statusCode: 400,
           error: fromZodError(error),
         });
       }
 
-      throw new BadRequestException('Incorrect fields');
+      throw new BadRequestException("Incorrect fields");
     }
   }
 }
