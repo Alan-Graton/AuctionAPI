@@ -36,12 +36,23 @@ export class BidsGateway
   }
 
   @SubscribeMessage("ping")
-  handleMessage(client: any, data: any) {
+  handlePing(client: any, data: any) {
     this.logger.log(`Message received from client id: ${client.id}`);
     this.logger.debug(`Payload: ${data}`);
     return {
       event: "pong",
       data: "Wrong data that will make the test fail",
+    };
+  }
+
+  @SubscribeMessage("bids_events")
+  handleBidSubmission(client: any, data: any) {
+    this.logger.debug(`making bid CLIENT: `, client);
+    this.logger.debug(`making bid DATA: `, data);
+
+    return {
+      event: "make_bid",
+      data: "Bid was made",
     };
   }
 }

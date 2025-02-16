@@ -1,5 +1,5 @@
 import { Controller, Post, Body, HttpCode, Logger } from "@nestjs/common";
-import { MessageBody } from "@nestjs/websockets";
+import { MessageBody, SubscribeMessage } from "@nestjs/websockets";
 import { PrismaService } from "src/prisma/prisma.service";
 
 @Controller("bids")
@@ -10,6 +10,7 @@ export class BidsController {
 
   @Post()
   @HttpCode(201)
+  @SubscribeMessage("bids_events")
   create(@MessageBody() data: any) {
     this.logger.log("Triggering websocket event...");
 
