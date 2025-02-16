@@ -9,7 +9,10 @@ import {
 } from "@nestjs/websockets";
 import { Server } from "socket.io";
 
-@WebSocketGateway()
+@WebSocketGateway(8081, {
+  cors: { origin: "http://localhost:3000", credentials: true },
+  transports: ["websocket"],
+})
 export class BidsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
